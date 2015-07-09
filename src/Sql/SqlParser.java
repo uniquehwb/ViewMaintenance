@@ -18,6 +18,7 @@ public class SqlParser {
 	SqlInterpreter interpreter;
 	// store all operation objects parsed from query
 	List<Operation> operationList;
+	String dataSource = "";
 	
 	public SqlParser(String sqlString) {
 		this.sqlString = sqlString;
@@ -37,10 +38,11 @@ public class SqlParser {
 		StringBuilder word = new StringBuilder();
 		Operation currentOperation = null;
 		operationList = new ArrayList<Operation>();
+		Boolean shouldAddAggregationKey = false;
+		Boolean shouldAddDataSource = false;
 		
 		while(interpreter.hasNext()){
 			char currentChar = interpreter.read();
-//			System.out.println("current char is " + currentChar);
 			// 1.not a space
 			if(currentChar != ' '){
 				word.append(currentChar);
@@ -67,6 +69,7 @@ public class SqlParser {
 						word.toString().equalsIgnoreCase("max") ||
 						word.toString().equalsIgnoreCase("avg")){
 					operation = new AggregationOperation();
+					operation.setExpression(word.toString());
 					operationList.add(operation);
 					// Add a delta operation if there is an aggregation operation
 					Operation deltaOperation = new DeltaOperation();
@@ -86,27 +89,46 @@ public class SqlParser {
 					expression += " or ";
 					currentOperation.setExpression(expression);
 				}
-//				// 2.6 from, maybe a join
-//				else if (!word.toString().trim().equals("from")){
-//					operation = new JoinOperation();
-//					currentOperation = operation;
-//				}
-				// 2.7 add one word
+				// 2.6 group by, which decides aggregation key
+				else if (word.toString().equalsIgnoreCase("group") || word.toString().equalsIgnoreCase("by")){
+					shouldAddAggregationKey = true;
+				}
+				// 2.7
+				else if (word.toString().equalsIgnoreCase("from")) {
+					shouldAddDataSource = true;
+				}
+				else if (word.toString().equalsIgnoreCase("join")) {
+					operation = new JoinOperation();
+					operationList.add(operation);
+					currentOperation = operation;
+					shouldAddDataSource = true;
+				}
+				// 2.9 add one word
 				else if(!word.toString().trim().equals("")){
-					String expression = currentOperation.getExpression();
-//					if (currentOperation.getKeyWords() == "FROM") {
-//						String[] expressions = word.toString().split(",");
-//						// not a join
-//						if (expressions.length == 1) {
-//							
-//						}
-//					}
-					if (expression == null) {
-						expression = word.toString().trim();
+					if (shouldAddAggregationKey) {
+						for (Operation op: operationList) {
+							// Group by belongs to aggregation view to define the aggregation key.
+							if (op.getKeyWords() == "AGGREGATION") {
+								String expression = op.getExpression();
+								expression = expression + " GROUPBY" + word.toString().trim();
+								op.setExpression(expression);
+								break;
+							}
+						}
+						shouldAddAggregationKey = false;
+					} else if (shouldAddDataSource) {
+						dataSource = dataSource + " " + word.toString();
+						shouldAddDataSource = false;
 					} else {
-						expression += word.toString().trim();
+						String expression = currentOperation.getExpression();
+	
+						if (expression == null) {
+							expression = word.toString().trim();
+						} else {
+							expression += word.toString().trim();
+						}
+						currentOperation.setExpression(expression);
 					}
-					currentOperation.setExpression(expression);
 				}
 				
 				// Reset the current word
@@ -126,6 +148,7 @@ public class SqlParser {
 		
 		DummyInputStream dummyInput = new DummyInputStream(100, "Raw");
 		DAG dag = new DAG(operationList, 0, dummyInput.getStream());
+		DAG.dataSource = dataSource;
 		return dag;
 	}
 

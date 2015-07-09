@@ -2,7 +2,6 @@ package ViewModels;
 
 import Stream.Stream;
 import CostModel.Cost;
-import DummyData.DummyInputStream;
 
 
 public class AggregationOperation implements Operation{
@@ -36,6 +35,7 @@ public class AggregationOperation implements Operation{
 	public void setExpression(String expression) {
 		this.expression = expression;
 	}
+
 	public boolean getPipelined() {
 		return pipelined;
 	}

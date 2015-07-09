@@ -1,11 +1,10 @@
 package ViewModels;
 
 import CostModel.Cost;
-import DummyData.DummyInputStream;
 import Stream.Stream;
 
 public class JoinOperation implements Operation{
-	private String keyWords = "FROM";
+	private String keyWords = "JOIN";
 	private String expression;
 	// Default materialized
 	private boolean pipelined = false;

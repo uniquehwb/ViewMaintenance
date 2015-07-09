@@ -1,7 +1,6 @@
-package DAG;
+	package DAG;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import DummyData.DummyInputStream;
@@ -16,6 +15,7 @@ public class DAG {
 	private List<Operation> operationList;
 	static public List<Operation> optimalOperationList;
 	static public double minimalCost = 100000000;
+	static public String dataSource;
 	
 	public double getCost(){
 		return cost;
