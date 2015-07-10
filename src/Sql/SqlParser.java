@@ -3,8 +3,8 @@ package Sql;
 import java.util.ArrayList;
 import java.util.List;
 
-import DAG.DAG;
 import DummyData.DummyInputStream;
+import Tree.Tree;
 import ViewModels.AggregationOperation;
 import ViewModels.DeltaOperation;
 import ViewModels.JoinOperation;
@@ -34,7 +34,7 @@ public class SqlParser {
 	}
 	
 	// Generate the dag according to interpreter.
-	public DAG parse() {
+	public Tree parse() {
 		StringBuilder word = new StringBuilder();
 		Operation currentOperation = null;
 		operationList = new ArrayList<Operation>();
@@ -147,8 +147,8 @@ public class SqlParser {
 		}
 		
 		DummyInputStream dummyInput = new DummyInputStream(100, "Raw");
-		DAG dag = new DAG(operationList, 0, dummyInput.getStream());
-		DAG.dataSource = dataSource;
+		Tree dag = new Tree(operationList, 0, dummyInput.getStream());
+		Tree.dataSource = dataSource;
 		return dag;
 	}
 

@@ -1,4 +1,4 @@
-	package DAG;
+package Tree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,9 +8,9 @@ import Rule.RuleClient;
 import Stream.Stream;
 import ViewModels.Operation;
 
-public class DAG {
+public class Tree {
 	private Node root;
-	// Total view maintenance cost of the dag
+	// Total view maintenance cost of the tree
 	private double cost;
 	private List<Operation> operationList;
 	static public List<Operation> optimalOperationList;
@@ -21,7 +21,7 @@ public class DAG {
 		return cost;
 	}
 	
-	public DAG(List<Operation> operationList, int index, Stream input) {
+	public Tree(List<Operation> operationList, int index, Stream input) {
 		cost = 0;
 		generateDAG(operationList, index, input);
 	}
@@ -116,14 +116,14 @@ public class DAG {
 			return;
 		}
 		DummyInputStream dummyInput = new DummyInputStream(100, "Raw");
-		DAG dag = new DAG(operationList, 0, dummyInput.getStream());
+		Tree dag = new Tree(operationList, 0, dummyInput.getStream());
 		System.out.println(operationList);
 		System.out.println("total cost is: " + dag.getCost());
-		if (dag.getCost() <= DAG.minimalCost) {
-			DAG.minimalCost = dag.getCost();
-			DAG.optimalOperationList = new ArrayList<Operation>();
+		if (dag.getCost() <= Tree.minimalCost) {
+			Tree.minimalCost = dag.getCost();
+			Tree.optimalOperationList = new ArrayList<Operation>();
 			for (Operation operation: operationList) {
-				DAG.optimalOperationList.add(operation);
+				Tree.optimalOperationList.add(operation);
 			}
 		}
 	}
