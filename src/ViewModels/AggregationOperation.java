@@ -5,7 +5,8 @@ import CostModel.Cost;
 
 
 public class AggregationOperation implements Operation{
-	private String keyWords = "AGGREGATION";
+	// keyWords is aggregation key
+	private String keyWords;
 	private String expression;
 	// Default materialized
 	private boolean pipelined = false;
@@ -26,6 +27,9 @@ public class AggregationOperation implements Operation{
 		return cost;
 	}
 	
+	public void setKeyWords(String keyWords) {
+		this.keyWords = keyWords; 
+	}
 	public String getKeyWords() {
 		return keyWords;
 	}
@@ -35,7 +39,6 @@ public class AggregationOperation implements Operation{
 	public void setExpression(String expression) {
 		this.expression = expression;
 	}
-
 	public boolean getPipelined() {
 		return pipelined;
 	}

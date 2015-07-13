@@ -4,7 +4,7 @@ import CostModel.Cost;
 import Stream.Stream;
 
 public class JoinOperation implements Operation{
-	private String keyWords = "JOIN";
+	private String keyWords;
 	private String expression;
 	// Default materialized
 	private boolean pipelined = false;
@@ -15,13 +15,13 @@ public class JoinOperation implements Operation{
 	// For join there are get cost, put cost, delete cost and forward cost
 	private Cost cost = new Cost();
 	
-	@Override
+	public void setKeyWords(String keyWords) {
+		this.keyWords = keyWords; 
+	}
 	public String getKeyWords() {
 		// TODO Auto-generated method stub
 		return keyWords;
 	}
-
-	@Override
 	public String getExpression() {
 		// TODO Auto-generated method stub
 		return expression;

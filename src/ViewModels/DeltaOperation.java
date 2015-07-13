@@ -5,7 +5,7 @@ import CostModel.Cost;
 
 
 public class DeltaOperation implements Operation{
-	private String keyWords = "DELTA";
+	private String keyWords;
 	private String expression;
 	// Default materialized
 	private boolean pipelined = false;
@@ -19,7 +19,9 @@ public class DeltaOperation implements Operation{
 	public Cost getCost() {
 		return cost;
 	}
-	
+	public void setKeyWords(String keyWords) {
+		this.keyWords = keyWords; 
+	}
 	public String getKeyWords() {
 		return keyWords;
 	}

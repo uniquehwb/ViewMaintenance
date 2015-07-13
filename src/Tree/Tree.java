@@ -15,7 +15,7 @@ public class Tree {
 	private List<Operation> operationList;
 	static public List<Operation> optimalOperationList;
 	static public double minimalCost = 100000000;
-	static public String dataSource;
+	static public List dataSource;
 	
 	public double getCost(){
 		return cost;
@@ -23,7 +23,7 @@ public class Tree {
 	
 	public Tree(List<Operation> operationList, int index, Stream input) {
 		cost = 0;
-		generateDAG(operationList, index, input);
+		generateTree(operationList, index, input);
 	}
 	
 	public static class Node{
@@ -52,10 +52,13 @@ public class Tree {
 		this.root = root;
 	}
 	
-	// recursively create a DAG
-	public Node generateDAG (List<Operation> operationList, int index, Stream input) {
-		if (index == operationList.size()) 
+	// recursively create a 
+	public Node generateTree (List<Operation> operationList, int index, Stream input) {
+		if (index == operationList.size()) {
+			System.out.println(operationList);
+			System.out.println("total cost is: " + cost);
 			return null;
+		}
 	    Node currentNode = new Node();
 	    if (index < operationList.size()) {
 	    	Operation currentNodeOperation = operationList.get(index);
@@ -68,7 +71,7 @@ public class Tree {
 	    	currentNode.setOperation(currentNodeOperation);
 	    	List<Node> successors = new ArrayList<Node>();
 			Node oneSuccessor = new Node();
-			oneSuccessor = generateDAG(operationList, index+1, currentNodeOperation.getOutput());
+			oneSuccessor = generateTree(operationList, index+1, currentNodeOperation.getOutput());
 			successors.add(oneSuccessor);
 			currentNode.setSuccessors(successors);
 			if (index == 0) {
@@ -87,7 +90,7 @@ public class Tree {
 		getAllOrder(0, operationList.size() - 1); 
 	}
 	
-	// get all orders of possible DAG
+	// get all orders of possible trees
 	public void getAllOrder(int begin, int end) {  
 	    if (begin == end) {  
 	    	check();  

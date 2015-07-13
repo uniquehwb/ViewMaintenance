@@ -2,7 +2,10 @@ package Rule;
 
 import java.util.List;
 
+import ViewModels.AggregationOperation;
+import ViewModels.DeltaOperation;
 import ViewModels.Operation;
+import ViewModels.SelectionOperation;
 
 public class RuleClient {
 	
@@ -27,10 +30,10 @@ public class RuleClient {
 		int selectionIndex = 0;
 		int aggregationIndex = 0;
 		for (int i = 0; i < operationList.size(); i++) {
-			if (operationList.get(i).getKeyWords() == "SELECTION") {
+			if (operationList.get(i).getClass().equals(SelectionOperation.class)) {
 				containSelection = true;
 				selectionIndex = i;
-			} else if (operationList.get(i).getKeyWords() == "AGGREGATION") {
+			} else if (operationList.get(i).getClass().equals(AggregationOperation.class)) {
 				containAggregation = true;
 				aggregationIndex = i;
 			}
@@ -51,8 +54,8 @@ public class RuleClient {
 	public boolean checkDeltaAggregationOrder() {
 		boolean correctOrder = false;
 		for (int i = 0; i < operationList.size(); i++) {
-			if (operationList.get(i).getKeyWords() == "AGGREGATION") {
-				if (operationList.get(i - 1).getKeyWords() == "DELTA") {
+			if (operationList.get(i).getClass().equals(AggregationOperation.class)) {
+				if (operationList.get(i - 1).getClass().equals(DeltaOperation.class)) {
 					correctOrder = true;
 				}
 			}

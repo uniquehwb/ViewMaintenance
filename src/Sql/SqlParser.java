@@ -148,7 +148,7 @@ public class SqlParser {
 		
 		DummyInputStream dummyInput = new DummyInputStream(100, "Raw");
 		Tree dag = new Tree(operationList, 0, dummyInput.getStream());
-		Tree.dataSource = dataSource;
+//		Tree.dataSource = dataSource;
 		return dag;
 	}
 
