@@ -4,6 +4,7 @@ import CostModel.Cost;
 import Stream.Stream;
 
 public class JoinOperation implements Operation{
+	// keyWords is join key
 	private String keyWords;
 	private String expression;
 	// Default materialized
