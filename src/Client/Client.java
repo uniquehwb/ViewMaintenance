@@ -2,9 +2,9 @@ package Client;
 
 import java.util.List;
 
+import Plans.LogicPlan;
 import Sql.AggregationsFinder;
 import Sql.JSqlParser;
-import Sql.SqlParser;
 import Tree.Tree;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
@@ -20,23 +20,33 @@ public class Client {
 
 	public static void main(String[] args) throws JSQLParserException {
 //		String queryString = "SELECT c1, SUM (c2) FROM t1 WHERE c2 < 10 GROUP BY (c1)";
-		String queryString = "SELECT t1.c1, SUM (t1.c2) "
+		String queryString = "SELECT t1.c1, t2.c2, SUM (t1.c2) "
 						   + "FROM t1 INNER JOIN t2 ON t1.c1 = t2.c1 "
-						   + "WHERE t1.c2 < 10 "
+						   + "WHERE t1.c2 > 10 AND t2.c3 = 20 "
 						   + "GROUP BY t1.c1 ";
 //		String queryString = "SELECT c1, c4, SUM(c2) FROM MY_TABLE1, MY_TABLE2, (SELECT c1 FROM MY_TABLE3) LEFT OUTER JOIN MY_TABLE4 "+
 //							 "WHERE ID = (SELECT MAX(ID) FROM MY_TABLE5) AND ID2 IN (SELECT * FROM MY_TABLE6) "+
 //							 "GROUP BY c1";
-		JSqlParser parser = new JSqlParser(queryString);
 		System.out.println("All legal orders: \n");
-		// DAG contains a rootNode, whose successors are created recursively.
+		
+		
+		// From SQL string to operation list
+		JSqlParser parser = new JSqlParser(queryString);
+		// From operation list to tree
 		Tree tree = parser.parse();
+		// From tree to logic plan
+		LogicPlan logicPlan = new LogicPlan(tree);
+		// From logic plan to cost model
+		double totalCost = logicPlan.executePlan();
+		
+		
+		System.out.println(totalCost);
 		tree.traverseAllStructures();
-		System.out.println("");
-		System.out.println("Data source is: " + tree.dataSource);
-		System.out.println("");
-		System.out.println("Minimal cost is: " + tree.minimalCost);
-		System.out.println("Corresponding operation order is: " + tree.optimalOperationList);
+//		System.out.println("");
+//		System.out.println("Data source is: " + tree.dataSource);
+//		System.out.println("");
+//		System.out.println("Minimal cost is: " + tree.minimalCost);
+//		System.out.println("Corresponding operation order is: " + tree.optimalOperationList);
 		
 	}
 }

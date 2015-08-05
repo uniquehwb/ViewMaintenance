@@ -6,6 +6,7 @@ import DummyData.DummyInputStream;
 
 
 public class SelectionOperation implements Operation{
+	// keyWords is name of the base table where the selection will be performed
 	private String keyWords;
 	private String expression;
 	// Default materialized

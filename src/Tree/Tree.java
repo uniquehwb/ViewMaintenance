@@ -1,9 +1,12 @@
 package Tree;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import DummyData.DummyInputStream;
+import Plans.LogicPlan;
 import Rule.RuleClient;
 import Stream.Stream;
 import ViewModels.AggregationOperation;
@@ -15,7 +18,10 @@ public class Tree {
 	private Node root;
 	// Total view maintenance cost of the tree
 	private double cost;
+	private Boolean validTree;
 	private List<Operation> operationList;
+	// store operation list based on different base table
+	private Map<String, List<Operation>> operationListMap;
 	static public List<Operation> optimalOperationList;
 	static public double minimalCost = 100000000;
 	// All table involved
@@ -23,13 +29,25 @@ public class Tree {
 	// From which table
 	static public String fromTable;
 	
-	public double getCost(){
-		return cost;
+	public Boolean getValidTree() {
+		return validTree;
 	}
 	
-	public Tree(List<Operation> operationList, int index, Stream input) {
+	public Tree(List<Operation> operationList, Map<String, List<Operation>> operationListMap, int index) {
 		cost = 0;
-		generateTree(operationList, index, input);
+		this.operationList = operationList;
+		this.operationListMap = operationListMap;
+		// no join
+		if (operationListMap.isEmpty()) {
+			generateChain(operationList, index);
+		} else {
+			Iterator it = operationListMap.entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry pair = (Map.Entry) it.next();
+				List<Operation> list = (List<Operation>) pair.getValue();
+				Node node = generateChain(list, index);
+			}
+		}
 	}
 	
 	public static class Node{
@@ -65,25 +83,72 @@ public class Tree {
 		this.root = root;
 	}
 	
-	// bottom-up recursively create a tree
-	public Node generateTree (List<Operation> operationList, int index, Stream input) {
+	// Bottom-up recursively create a chain, if there is no join.
+	public Node generateChain (List<Operation> operationList, int index) {
 		if (index == operationList.size()) {
 			RuleClient ruleClient = new RuleClient(operationList);
 			if (ruleClient.checkAllRules()) {
-				System.out.println(operationList);
-				System.out.println("total cost is: " + cost);
+				validTree = true;
+			} else {
+				validTree = false;
 			}
 			return null;
 		}
 	    Node currentNode = new Node();
 	    if (index < operationList.size()) {
 	    	Operation currentNodeOperation = operationList.get(index);
-	    	currentNodeOperation.setInput(input);
-	    	double nodeCost = currentNodeOperation.getCost().computeTotalCost();
-	    	cost = cost + nodeCost; 
-	    	// output should be reconstructed according to operation in real.
-	    	// currentNodeOperation.updateHBase();
-//	    	currentNodeOperation.setOutput(input);
+	    	currentNode.setOperation(currentNodeOperation);
+			Node parent = new Node();
+			parent = generateChain(operationList, index+1);
+			// Append the current node as successor of the parent.
+			if (parent != null) {
+				Node oneSuccessor = currentNode;
+				List<Node> successors;
+				if (parent.getSuccessors() != null) {
+					successors = parent.getSuccessors();
+				} else {
+					successors = new ArrayList<Node>();
+				}
+				successors.add(oneSuccessor);
+				parent.setSuccessors(successors);
+			} 
+			currentNode.setParent(parent);
+			if (index == 0) {
+				// Add data source to the tree.
+				BaseTable bt = new BaseTable();
+	    		bt.setKeyWords(Tree.fromTable.toString());
+	    		Node oneSuccessor = new Node();
+	    		oneSuccessor.setOperation(bt);
+	    		oneSuccessor.setParent(currentNode);
+	    		root = oneSuccessor;
+	    		List<Node> successors;
+	    		if (currentNode.getSuccessors() != null) {
+					successors = currentNode.getSuccessors();
+				} else {
+					successors = new ArrayList<Node>();
+				}
+				successors.add(oneSuccessor);
+	    		currentNode.setSuccessors(successors);
+				
+			}
+	    }
+	    return currentNode;
+	}
+	
+	// bottom-up recursively create a tree
+	public Node generateTree (List<Operation> operationList, int index) {
+		if (index == operationList.size()) {
+			RuleClient ruleClient = new RuleClient(operationList);
+			if (ruleClient.checkAllRules()) {
+				validTree = true;
+			} else {
+				validTree = false;
+			}
+			return null;
+		}
+	    Node currentNode = new Node();
+	    if (index < operationList.size()) {
+	    	Operation currentNodeOperation = operationList.get(index);
 	    	currentNode.setOperation(currentNodeOperation);
 	    	// Add base table to join operation
 	    	if (currentNode.getOperation().getClass().equals(JoinOperation.class)) {
@@ -101,7 +166,7 @@ public class Tree {
 	    		currentNode.setSuccessors(successors);
 	    	}
 			Node parent = new Node();
-			parent = generateTree(operationList, index+1, currentNodeOperation.getOutput());
+			parent = generateTree(operationList, index+1);
 			// Append the current node as successor of the parent.
 			if (parent != null) {
 				Node oneSuccessor = currentNode;
@@ -176,12 +241,13 @@ public class Tree {
 		if (!ruleClient.checkAllRules()) {
 			return;
 		}
-		DummyInputStream dummyInput = new DummyInputStream(100, "Raw");
-		Tree dag = new Tree(operationList, 0, dummyInput.getStream());
+		Tree tree = new Tree(operationList, operationListMap, 0);
+		LogicPlan logicPlan = new LogicPlan(tree);
+		double totalCost = logicPlan.executePlan();
 		System.out.println(operationList);
-		System.out.println("total cost is: " + dag.getCost());
-		if (dag.getCost() <= Tree.minimalCost) {
-			Tree.minimalCost = dag.getCost();
+		System.out.println("total cost is: " + totalCost);
+		if (totalCost <= Tree.minimalCost) {
+			Tree.minimalCost = totalCost;
 			Tree.optimalOperationList = new ArrayList<Operation>();
 			for (Operation operation: operationList) {
 				Tree.optimalOperationList.add(operation);
